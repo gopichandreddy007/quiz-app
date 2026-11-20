@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { fetchQuestions } from './lib/api'
 import type { Question, QuizSettings } from './lib/types'
-import { score, type QuizState } from './lib/quiz'
+import type { QuizState } from './lib/quiz'
 import SetupScreen from './components/SetupScreen'
+import ResultsScreen from './components/ResultsScreen'
 import QuizScreen from './components/QuizScreen'
 
 const DEFAULT_SETTINGS: QuizSettings = { categoryId: null, difficulty: 'any', amount: 10, secondsPerQuestion: 20 }
@@ -19,6 +20,13 @@ function App() {
   function start(newSettings: QuizSettings) {
     setSettings(newSettings)
     loadQuestions.mutate(newSettings)
+  }
+
+  // same settings, fresh questions
+  function playAgain() {
+    setQuestions(null)
+    setResult(null)
+    loadQuestions.mutate(settings)
   }
 
   function backToSetup() {
@@ -38,9 +46,7 @@ function App() {
 
       <main className="flex-1">
         {result ? (
-          <p className="text-center text-slate-300">
-            You scored {score(result)} / {result.questions.length}
-          </p>
+          <ResultsScreen result={result} onPlayAgain={playAgain} onNewQuiz={backToSetup} />
         ) : questions ? (
           <QuizScreen
             questions={questions}
