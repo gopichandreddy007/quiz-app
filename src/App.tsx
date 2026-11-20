@@ -1,4 +1,23 @@
+import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { fetchQuestions } from './lib/api'
+import type { Question, QuizSettings } from './lib/types'
+import SetupScreen from './components/SetupScreen'
+
+const DEFAULT_SETTINGS: QuizSettings = { categoryId: null, difficulty: 'any', amount: 10, secondsPerQuestion: 20 }
+
 function App() {
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [questions, setQuestions] = useState<Question[] | null>(null)
+
+  // a mutation, because every press of "Start" should get new questions
+  const loadQuestions = useMutation({ mutationFn: fetchQuestions, onSuccess: setQuestions })
+
+  function start(newSettings: QuizSettings) {
+    setSettings(newSettings)
+    loadQuestions.mutate(newSettings)
+  }
+
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8">
       <header className="mb-8 text-center">
@@ -9,7 +28,16 @@ function App() {
       </header>
 
       <main className="flex-1">
-        <p className="text-center text-slate-400">Quiz coming soon</p>
+        {questions ? (
+          <p className="text-center text-slate-300">Loaded {questions.length} questions</p>
+        ) : (
+          <SetupScreen
+            initialSettings={settings}
+            onStart={start}
+            loading={loadQuestions.isPending}
+            error={loadQuestions.error?.message ?? null}
+          />
+        )}
       </main>
 
       <footer className="mt-10 text-center text-xs text-slate-500">
