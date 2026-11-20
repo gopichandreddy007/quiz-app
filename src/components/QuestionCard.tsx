@@ -35,9 +35,9 @@ function QuestionCard({ question, selected, revealed, hidden, onAnswer }: Props)
               key={option}
               onClick={() => onAnswer(option)}
               disabled={revealed || isHidden}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-left ring-1 transition ${optionStyle(option)} ${
-                isHidden ? 'invisible' : ''
-              }`}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-left ring-1 transition ${optionStyle(option)}`}
+              // hidden but still taking up space, so the other options don't jump around
+              style={isHidden ? { visibility: 'hidden' } : undefined}
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-sm font-bold">
                 {LETTERS[i]}
