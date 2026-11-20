@@ -5,6 +5,7 @@ import type { Question, QuizSettings } from './lib/types'
 import type { QuizState } from './lib/quiz'
 import SetupScreen from './components/SetupScreen'
 import ResultsScreen from './components/ResultsScreen'
+import AnswerReview from './components/AnswerReview'
 import QuizScreen from './components/QuizScreen'
 
 const DEFAULT_SETTINGS: QuizSettings = { categoryId: null, difficulty: 'any', amount: 10, secondsPerQuestion: 20 }
@@ -46,7 +47,10 @@ function App() {
 
       <main className="flex-1">
         {result ? (
-          <ResultsScreen result={result} onPlayAgain={playAgain} onNewQuiz={backToSetup} />
+          <>
+            <ResultsScreen result={result} onPlayAgain={playAgain} onNewQuiz={backToSetup} />
+            <AnswerReview result={result} />
+          </>
         ) : questions ? (
           <QuizScreen
             questions={questions}
