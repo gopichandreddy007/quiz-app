@@ -29,6 +29,19 @@ function QuizScreen({ questions, secondsPerQuestion, onFinish, onQuit }: Props) 
     }
   }, [state, onFinish])
 
+  // keyboard: 1-4 or A-D picks an answer (Enter already works on the focused Next button)
+  useEffect(() => {
+    const options = state.questions[state.index]?.options ?? []
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      const key = e.key.toLowerCase()
+      const index = '1234'.includes(key) ? Number(key) - 1 : 'abcd'.indexOf(key)
+      if (index >= 0 && options[index]) dispatch({ type: 'ANSWER', option: options[index] })
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [state.questions, state.index])
+
   if (state.status === 'finished') return null
 
   const question = currentQuestion(state)
@@ -64,6 +77,7 @@ function QuizScreen({ questions, secondsPerQuestion, onFinish, onQuit }: Props) 
           <button onClick={onQuit} className="text-sm text-slate-400 hover:text-white">
             ✕ Quit
           </button>
+          <span className="hidden text-xs text-slate-500 sm:inline">Keys 1–4 to answer</span>
           {!answer && (
             <button
               onClick={() => dispatch({ type: 'FIFTY_FIFTY' })}

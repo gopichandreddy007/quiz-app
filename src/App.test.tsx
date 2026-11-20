@@ -121,6 +121,25 @@ describe('App', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/aren't enough questions/)
   })
 
+  it('can answer with the keyboard', async () => {
+    fakeApi()
+    const user = userEvent.setup()
+    renderWithQuery(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'No timer' }))
+    await user.click(await screen.findByRole('button', { name: /start quiz/i }))
+    await screen.findByText('Capital of France?')
+
+    // find which number key belongs to "Paris" (the options are shuffled)
+    const options = screen.getAllByRole('button').filter((b) => /^[A-D]/.test(b.textContent ?? ''))
+    const parisIndex = options.findIndex((b) => b.textContent?.includes('Paris'))
+    await user.keyboard(String(parisIndex + 1))
+    expect(screen.getByRole('status')).toHaveTextContent('Correct!')
+
+    await user.keyboard('{Enter}') // Next button has focus
+    expect(screen.getByText('Largest ocean?')).toBeInTheDocument()
+  })
+
   it('can use 50:50 once', async () => {
     fakeApi()
     const user = userEvent.setup()
