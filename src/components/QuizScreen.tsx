@@ -55,9 +55,21 @@ function QuizScreen({ questions, secondsPerQuestion, onFinish, onQuit }: Props) 
       />
 
       <div className="mt-6 flex items-center justify-between gap-3">
-        <button onClick={onQuit} className="text-sm text-slate-400 hover:text-white">
-          ✕ Quit
-        </button>
+        <div className="flex items-center gap-4">
+          <button onClick={onQuit} className="text-sm text-slate-400 hover:text-white">
+            ✕ Quit
+          </button>
+          {!answer && (
+            <button
+              onClick={() => dispatch({ type: 'FIFTY_FIFTY' })}
+              disabled={state.fiftyFiftyUsed}
+              title={state.fiftyFiftyUsed ? 'Already used in this quiz' : 'Remove two wrong answers (once per quiz)'}
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold text-sky-300 ring-1 ring-sky-400/40 transition hover:bg-sky-400/20 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              50:50
+            </button>
+          )}
+        </div>
 
         {answer && (
           <div className="flex items-center gap-4">
