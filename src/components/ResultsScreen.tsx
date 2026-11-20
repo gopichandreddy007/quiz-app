@@ -3,11 +3,12 @@ import { formatDuration, percent, verdict } from '../lib/results'
 
 type Props = {
   result: QuizState
+  isNewBest: boolean
   onPlayAgain: () => void
   onNewQuiz: () => void
 }
 
-function ResultsScreen({ result, onPlayAgain, onNewQuiz }: Props) {
+function ResultsScreen({ result, isNewBest, onPlayAgain, onNewQuiz }: Props) {
   const total = result.questions.length
   const correct = score(result)
   const pct = percent(correct, total)
@@ -20,6 +21,11 @@ function ResultsScreen({ result, onPlayAgain, onNewQuiz }: Props) {
         {emoji}
       </p>
       <h2 className="mt-3 text-2xl font-extrabold">{title}</h2>
+      {isNewBest && (
+        <p className="mt-2 inline-block rounded-full bg-amber-400/15 px-3 py-1 text-sm font-semibold text-amber-300">
+          ⭐ New best score!
+        </p>
+      )}
 
       <p className="mt-4 text-6xl font-black text-amber-400">
         {correct}

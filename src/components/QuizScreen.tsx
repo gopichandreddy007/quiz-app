@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { useCountdown } from '../hooks/useCountdown'
 import TimerBar from './TimerBar'
 import { quizReducer, startQuiz, currentQuestion, isLastQuestion, score, type QuizState } from '../lib/quiz'
@@ -19,9 +19,14 @@ function QuizScreen({ questions, secondsPerQuestion, onFinish, onQuit }: Props) 
   const timeUp = useCallback(() => dispatch({ type: 'TIME_UP' }), [])
   const timer = useCountdown(secondsPerQuestion, state.status === 'answering', timeUp, state.index)
 
-  // tell the parent when the last question is done
+  // tell the parent when the last question is done, exactly once
+  // (React runs effects twice in development, and onFinish saves the score)
+  const reported = useRef(false)
   useEffect(() => {
-    if (state.status === 'finished') onFinish(state)
+    if (state.status === 'finished' && !reported.current) {
+      reported.current = true
+      onFinish(state)
+    }
   }, [state, onFinish])
 
   if (state.status === 'finished') return null

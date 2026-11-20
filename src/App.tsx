@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { fetchQuestions } from './lib/api'
 import type { Question, QuizSettings } from './lib/types'
-import type { QuizState } from './lib/quiz'
+import { score, type QuizState } from './lib/quiz'
+import { saveScore } from './lib/highScores'
+import { percent } from './lib/results'
+import HighScores from './components/HighScores'
 import SetupScreen from './components/SetupScreen'
 import ResultsScreen from './components/ResultsScreen'
 import AnswerReview from './components/AnswerReview'
@@ -14,6 +17,7 @@ function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [questions, setQuestions] = useState<Question[] | null>(null)
   const [result, setResult] = useState<QuizState | null>(null)
+  const [isNewBest, setIsNewBest] = useState(false)
 
   // a mutation, because every press of "Start" should get new questions
   const loadQuestions = useMutation({ mutationFn: fetchQuestions, onSuccess: setQuestions })
@@ -21,6 +25,24 @@ function App() {
   function start(newSettings: QuizSettings) {
     setSettings(newSettings)
     loadQuestions.mutate(newSettings)
+  }
+
+  // save the score and remember if it beat the old best
+  function finish(state: QuizState) {
+    const total = state.questions.length
+    const correct = score(state)
+    setIsNewBest(
+      saveScore({
+        // a quiz with a chosen category only has questions from that category
+        category: settings.categoryId === null ? 'Any category' : state.questions[0].category,
+        difficulty: settings.difficulty,
+        score: correct,
+        total,
+        percent: percent(correct, total),
+        date: new Date().toISOString(),
+      }),
+    )
+    setResult(state)
   }
 
   // same settings, fresh questions
@@ -48,23 +70,26 @@ function App() {
       <main className="flex-1">
         {result ? (
           <>
-            <ResultsScreen result={result} onPlayAgain={playAgain} onNewQuiz={backToSetup} />
+            <ResultsScreen result={result} isNewBest={isNewBest} onPlayAgain={playAgain} onNewQuiz={backToSetup} />
             <AnswerReview result={result} />
           </>
         ) : questions ? (
           <QuizScreen
             questions={questions}
             secondsPerQuestion={settings.secondsPerQuestion}
-            onFinish={setResult}
+            onFinish={finish}
             onQuit={backToSetup}
           />
         ) : (
-          <SetupScreen
-            initialSettings={settings}
-            onStart={start}
-            loading={loadQuestions.isPending}
-            error={loadQuestions.error?.message ?? null}
-          />
+          <>
+            <SetupScreen
+              initialSettings={settings}
+              onStart={start}
+              loading={loadQuestions.isPending}
+              error={loadQuestions.error?.message ?? null}
+            />
+            <HighScores />
+          </>
         )}
       </main>
 
