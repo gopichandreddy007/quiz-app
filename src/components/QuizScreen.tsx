@@ -1,16 +1,23 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
+import { useCountdown } from '../hooks/useCountdown'
+import TimerBar from './TimerBar'
 import { quizReducer, startQuiz, currentQuestion, isLastQuestion, score, type QuizState } from '../lib/quiz'
 import type { Question } from '../lib/types'
 import QuestionCard from './QuestionCard'
 
 type Props = {
   questions: Question[]
+  secondsPerQuestion: number // 0 = no timer
   onFinish: (state: QuizState) => void
   onQuit: () => void
 }
 
-function QuizScreen({ questions, onFinish, onQuit }: Props) {
+function QuizScreen({ questions, secondsPerQuestion, onFinish, onQuit }: Props) {
   const [state, dispatch] = useReducer(quizReducer, questions, (qs) => startQuiz(qs, Date.now()))
+
+  // one countdown per question, it stops as soon as the question is answered
+  const timeUp = useCallback(() => dispatch({ type: 'TIME_UP' }), [])
+  const timer = useCountdown(secondsPerQuestion, state.status === 'answering', timeUp, state.index)
 
   // tell the parent when the last question is done
   useEffect(() => {
@@ -37,6 +44,8 @@ function QuizScreen({ questions, onFinish, onQuit }: Props) {
         <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
 
+      {secondsPerQuestion > 0 && <TimerBar msLeft={timer.msLeft} fraction={timer.fraction} />}
+
       <QuestionCard
         question={question}
         selected={answer?.selected ?? null}
@@ -53,7 +62,7 @@ function QuizScreen({ questions, onFinish, onQuit }: Props) {
         {answer && (
           <div className="flex items-center gap-4">
             <span className={`font-semibold ${answer.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`} role="status">
-              {answer.isCorrect ? 'Correct! 🎉' : 'Not quite'}
+              {answer.isCorrect ? 'Correct! 🎉' : answer.selected === null ? "⏰ Time's up!" : 'Not quite'}
             </span>
             <button
               onClick={() => dispatch({ type: 'NEXT', now: Date.now() })}

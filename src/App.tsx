@@ -42,7 +42,12 @@ function App() {
             You scored {score(result)} / {result.questions.length}
           </p>
         ) : questions ? (
-          <QuizScreen questions={questions} onFinish={setResult} onQuit={backToSetup} />
+          <QuizScreen
+            questions={questions}
+            secondsPerQuestion={settings.secondsPerQuestion}
+            onFinish={setResult}
+            onQuit={backToSetup}
+          />
         ) : (
           <SetupScreen
             initialSettings={settings}
