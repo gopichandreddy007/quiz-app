@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { fetchQuestions } from './lib/api'
 import type { Question, QuizSettings } from './lib/types'
+import { score, type QuizState } from './lib/quiz'
 import SetupScreen from './components/SetupScreen'
+import QuizScreen from './components/QuizScreen'
 
 const DEFAULT_SETTINGS: QuizSettings = { categoryId: null, difficulty: 'any', amount: 10, secondsPerQuestion: 20 }
 
 function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [questions, setQuestions] = useState<Question[] | null>(null)
+  const [result, setResult] = useState<QuizState | null>(null)
 
   // a mutation, because every press of "Start" should get new questions
   const loadQuestions = useMutation({ mutationFn: fetchQuestions, onSuccess: setQuestions })
@@ -16,6 +19,12 @@ function App() {
   function start(newSettings: QuizSettings) {
     setSettings(newSettings)
     loadQuestions.mutate(newSettings)
+  }
+
+  function backToSetup() {
+    setQuestions(null)
+    setResult(null)
+    loadQuestions.reset()
   }
 
   return (
@@ -28,8 +37,12 @@ function App() {
       </header>
 
       <main className="flex-1">
-        {questions ? (
-          <p className="text-center text-slate-300">Loaded {questions.length} questions</p>
+        {result ? (
+          <p className="text-center text-slate-300">
+            You scored {score(result)} / {result.questions.length}
+          </p>
+        ) : questions ? (
+          <QuizScreen questions={questions} onFinish={setResult} onQuit={backToSetup} />
         ) : (
           <SetupScreen
             initialSettings={settings}
