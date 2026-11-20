@@ -65,6 +65,8 @@ export function toQuestion(raw: RawQuestion, index: number, random: () => number
 
 export async function fetchQuestions(settings: QuizSettings): Promise<Question[]> {
   const res = await fetch(buildQuestionsUrl(settings))
+  // the api allows one request every 5 seconds. It can say so with http 429 or with response_code 5
+  if (res.status === 429) throw new Error(RESPONSE_MESSAGES[5])
   if (!res.ok) throw new Error(`Could not load questions (${res.status})`)
 
   const data: QuestionsResponse = await res.json()

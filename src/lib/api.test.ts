@@ -91,6 +91,11 @@ describe('fetchQuestions', () => {
     await expect(fetchQuestions(settings)).rejects.toThrow(/wait 5 seconds/)
   })
 
+  it('explains http 429 (too many requests) the same way', async () => {
+    mockFetch({}, false, 429)
+    await expect(fetchQuestions(settings)).rejects.toThrow(/wait 5 seconds/)
+  })
+
   it('throws on http errors', async () => {
     mockFetch({}, false, 500)
     await expect(fetchQuestions(settings)).rejects.toThrow('500')
