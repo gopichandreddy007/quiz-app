@@ -20,8 +20,9 @@ function SetupScreen({ initialSettings, onStart, loading, error }: Props) {
   // categories rarely change, so keep them for the whole visit
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity })
 
+  // "prev =>" so quick clicks on different options don't overwrite each other
   function update<K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) {
-    setSettings({ ...settings, [key]: value })
+    setSettings((prev) => ({ ...prev, [key]: value }))
   }
 
   function handleSubmit(e: FormEvent) {
